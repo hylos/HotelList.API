@@ -1,4 +1,6 @@
-﻿namespace HotelList.API.Data
+﻿using Microsoft.Build.Framework;
+
+namespace HotelList.API.Data
 {
     public class Country
     {

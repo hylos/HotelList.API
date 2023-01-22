@@ -16,13 +16,15 @@ namespace HotelList.API.IRepository.Repository
         private readonly IMapper _mapper;
         private readonly UserManager<User> _userManager;
         private readonly IConfiguration _configuration;
+        private readonly ILogger<AuthManager> _logger;
         private User _user;
 
-        public AuthManager(IMapper mapper, UserManager<User> userManager, IConfiguration configuration)
+        public AuthManager(IMapper mapper, UserManager<User> userManager, IConfiguration configuration, ILogger<AuthManager> logger)
         {
             _mapper = mapper;
             _userManager = userManager;
             _configuration = configuration;
+            _logger = logger;
         }
 
         public async Task<string> CreateRefreshToken()
@@ -69,16 +71,24 @@ namespace HotelList.API.IRepository.Repository
 
         public async Task<AuthResponseDto> Login(LoginDto loginDto)
         {
+            //Logger
+            _logger.LogInformation($"Looking for user with email {loginDto.Email}");
+
             //check if the user exist by using th eamil
             _user = await _userManager.FindByEmailAsync(loginDto.Email);
             bool isValidUser = await _userManager.CheckPasswordAsync(_user, loginDto.Password);
            
             if(_user == null || isValidUser == false)
             {
+                _logger.LogWarning($"User with email {loginDto.Email} was not found");
                 return null;
             }
 
+            //genarate token
             var token = await GenerateToken();
+
+            //Logger
+            _logger.LogInformation($"Token genarated successfully! {DateTime.Now}");    
 
             return new AuthResponseDto 
             { 

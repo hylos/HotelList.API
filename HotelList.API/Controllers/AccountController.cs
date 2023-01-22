@@ -10,11 +10,12 @@ namespace HotelList.API.Controllers
     public class AccountController : ControllerBase
     {
         private readonly IAuthManager _authManager;
+        private readonly ILogger<AccountController> _logger;
 
-
-        public AccountController(IAuthManager authManager)
+        public AccountController(IAuthManager authManager, ILogger<AccountController> logger)
         {
             _authManager = authManager;
+            _logger = logger;
         }
 
         // POST: api/aacount/register
@@ -25,18 +26,32 @@ namespace HotelList.API.Controllers
         [ProducesResponseType(StatusCodes.Status200OK)]//this will update swagger so that it knows, it might return Ok response.
         public async Task<ActionResult> Register([FromBody]UserDto userDto)
         {
+            //logger
+            _logger.LogInformation($"Registration Attempt for {userDto.Email}");
+
+            try 
+            { 
             var errors = await _authManager.Register(userDto);
 
-            if (errors.Any()) 
-            {
-                foreach (var error in errors)
+            if (errors.Any())
                 {
-                    ModelState.AddModelError(error.Code, error.Description);
+                    foreach (var error in errors)
+                    {
+                        ModelState.AddModelError(error.Code, error.Description);
+                    }
+                    return BadRequest(ModelState);
                 }
-                return BadRequest(ModelState);
+
+                return Ok();
+            }
+            catch (Exception ex)
+            {
+
+                _logger.LogError(ex,$"Something went wrong in the {nameof(Register)} - User Rgeistration attempt for {userDto.Email}");
+                return Problem($"Something went wrong in the {nameof(Register)}", statusCode: 500);
             }
 
-            return Ok();
+
         }
 
         // POST: api/account/login
@@ -47,14 +62,26 @@ namespace HotelList.API.Controllers
         [ProducesResponseType(StatusCodes.Status200OK)]//this will update swagger so that it knows, it might return Ok response.
         public async Task<ActionResult> Login([FromBody] LoginDto loginDto)
         {
-            var authResponse = await _authManager.Login(loginDto);
+            //logger
+            _logger.LogInformation($"Login Attempt for {loginDto.Email}");
 
-            if (authResponse == null)
+            try
             {
-                return Unauthorized();
-            }
+                var authResponse = await _authManager.Login(loginDto);
 
-            return Ok(authResponse);
+                if (authResponse == null)
+                {
+                    return Unauthorized();
+                }
+
+                return Ok(authResponse);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Something went wrong in the {nameof(Login)} - User Rgeistration attempt for {loginDto.Email}");
+                return Problem($"Something went wrong in the {nameof(Login)}", statusCode: 500);
+            }
+            
         }
 
         // POST: api/account/refreshtoken

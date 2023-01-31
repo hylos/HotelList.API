@@ -29,29 +29,18 @@ namespace HotelList.API.Controllers
             //logger
             _logger.LogInformation($"Registration Attempt for {userDto.Email}");
 
-            try 
-            { 
             var errors = await _authManager.Register(userDto);
 
             if (errors.Any())
-                {
-                    foreach (var error in errors)
-                    {
-                        ModelState.AddModelError(error.Code, error.Description);
-                    }
-                    return BadRequest(ModelState);
-                }
-
-                return Ok();
-            }
-            catch (Exception ex)
             {
-
-                _logger.LogError(ex,$"Something went wrong in the {nameof(Register)} - User Rgeistration attempt for {userDto.Email}");
-                return Problem($"Something went wrong in the {nameof(Register)}", statusCode: 500);
+                foreach (var error in errors)
+                {
+                    ModelState.AddModelError(error.Code, error.Description);
+                }
+                return BadRequest(ModelState);
             }
 
-
+            return Ok();
         }
 
         // POST: api/account/login
@@ -65,23 +54,14 @@ namespace HotelList.API.Controllers
             //logger
             _logger.LogInformation($"Login Attempt for {loginDto.Email}");
 
-            try
-            {
-                var authResponse = await _authManager.Login(loginDto);
+            var authResponse = await _authManager.Login(loginDto);
 
-                if (authResponse == null)
-                {
-                    return Unauthorized();
-                }
-
-                return Ok(authResponse);
-            }
-            catch (Exception ex)
+            if (authResponse == null)
             {
-                _logger.LogError(ex, $"Something went wrong in the {nameof(Login)} - User Rgeistration attempt for {loginDto.Email}");
-                return Problem($"Something went wrong in the {nameof(Login)}", statusCode: 500);
+                return Unauthorized();
             }
-            
+
+            return Ok(authResponse); 
         }
 
         // POST: api/account/refreshtoken

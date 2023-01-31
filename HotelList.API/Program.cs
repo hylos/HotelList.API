@@ -2,6 +2,7 @@ using HotelList.API.Configurations;
 using HotelList.API.Data;
 using HotelList.API.IRepository;
 using HotelList.API.IRepository.Repository;
+using HotelList.API.Middleware;
 using HotelList.API.Static;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
@@ -79,6 +80,8 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
 }
+
+app.UseMiddleware<ExceptionMiddleware>();
 
 app.UseHttpsRedirection();
 app.UseCors(SD.CorsPolicyName);

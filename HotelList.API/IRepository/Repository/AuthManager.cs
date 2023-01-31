@@ -88,7 +88,7 @@ namespace HotelList.API.IRepository.Repository
             var token = await GenerateToken();
 
             //Logger
-            _logger.LogInformation($"Token genarated successfully! {DateTime.Now}");    
+            _logger.LogInformation($"Token genarated successfully! {DateTime.Now.ToString()}");    
 
             return new AuthResponseDto 
             { 

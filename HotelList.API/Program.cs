@@ -91,6 +91,12 @@ builder.Services.AddAuthentication(options =>
     };
 });
 
+//Caching
+builder.Services.AddResponseCaching(options => {
+    options.MaximumBodySize= 1024;
+    options.UseCaseSensitivePaths= true;
+});
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
@@ -104,6 +110,21 @@ app.UseMiddleware<ExceptionMiddleware>();
 
 app.UseHttpsRedirection();
 app.UseCors(SD.CorsPolicyName);
+
+//Caching
+app.UseResponseCaching();
+app.Use(async (context, next) => {
+    context.Response.GetTypedHeaders().CacheControl =
+    new Microsoft.Net.Http.Headers.CacheControlHeaderValue()
+    {
+        Public = true,
+        MaxAge = TimeSpan.FromSeconds(10)
+    };
+context.Response.Headers[Microsoft.Net.Http.Headers.HeaderNames.Vary] =
+    new string[] { "Accept-Encoding" };
+
+await next();
+});
 
 app.UseAuthentication();
 app.UseAuthorization();
